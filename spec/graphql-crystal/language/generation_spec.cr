@@ -126,87 +126,159 @@ describe GraphQL::Language::Generation do
       end
 
       describe "full featured schema" do
-        # From: https://github.com/graphql/graphql-js/blob/bc96406ab44453a120da25a0bd6e2b0237119ddf/src/language/__tests__/schema-kitchen-sink.graphql
+        # From: https://github.com/graphql/graphql-js/blob/b883320afb0fae3318afe9da0b0c0da9eed4e6f7/src/language/__tests__/schema-kitchen-sink.graphql
         query_string = <<-schema
+          """This is a description of the schema as a whole."""
           schema {
             query: QueryType
             mutation: MutationType
           }
-
-          # Union description
-          union AnnotatedUnion @onUnion = A | B
-
-          type Foo implements Bar {
+          
+          """
+          This is a description
+          of the `Foo` type.
+          """
+          type Foo implements Bar & Baz & Two {
+            "Description of the `one` field."
             one: Type
-            two(argument: InputType!): Type
+            """
+            This is a description of the `two` field.
+            """
+            two(
+              """
+              This is a description of the `argument` argument.
+              """
+              argument: InputType!
+            ): Type
+            """This is a description of the `three` field."""
             three(argument: InputType, other: String): Int
             four(argument: String = "string"): String
             five(argument: [String] = ["string", "string"]): String
             six(argument: InputType = {key: "value"}): Type
+            seven(argument: Int = null): Type
           }
-
-          # Scalar description
-          scalar CustomScalar
-
+          
           type AnnotatedObject @onObject(arg: "value") {
-            annotatedField(arg: Type = "default" @onArg): Type @onField
+            annotatedField(arg: Type = "default" @onArgumentDefinition): Type @onField
           }
-
+          
+          type UndefinedType
+          
+          extend type Foo {
+            seven(argument: [String]): Type
+          }
+          
+          extend type Foo @onType
+          
           interface Bar {
             one: Type
             four(argument: String = "string"): String
           }
-
-          # Enum description
-          enum Site {
-            # Enum value description
-            DESKTOP
-            MOBILE
-          }
-
+          
           interface AnnotatedInterface @onInterface {
-            annotatedField(arg: Type @onArg): Type @onField
+            annotatedField(arg: Type @onArgumentDefinition): Type @onField
           }
-
-          union Feed = Story | Article | Advert
-
-          # Input description
-          input InputType {
-            key: String!
-            answer: Int = 42
+          
+          interface UndefinedInterface
+          
+          extend interface Bar implements Two {
+            two(argument: InputType!): Type
           }
-
+          
+          extend interface Bar @onInterface
+          
+          interface Baz implements Bar & Two {
+            one: Type
+            two(argument: InputType!): Type
+            four(argument: String = "string"): String
+          }
+          
+          union Feed =
+            | Story
+            | Article
+            | Advert
+          
           union AnnotatedUnion @onUnion = A | B
-
+          
+          union AnnotatedUnionTwo @onUnion = | A | B
+          
+          union UndefinedUnion
+          
+          extend union Feed = Photo | Video
+          
+          extend union Feed @onUnion
+          
           scalar CustomScalar
-
-          # Directive description
-          directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
-
+          
           scalar AnnotatedScalar @onScalar
-
+          
+          extend scalar CustomScalar @onScalar
+          
           enum Site {
+            """
+            This is a description of the `DESKTOP` value
+            """
             DESKTOP
+          
+            """This is a description of the `MOBILE` value"""
             MOBILE
+          
+            "This is a description of the `WEB` value"
+            WEB
           }
-
+          
           enum AnnotatedEnum @onEnum {
             ANNOTATED_VALUE @onEnumValue
             OTHER_VALUE
           }
-
+          
+          enum UndefinedEnum
+          
+          extend enum Site {
+            VR
+          }
+          
+          extend enum Site @onEnum
+          
           input InputType {
             key: String!
             answer: Int = 42
           }
-
-          input AnnotatedInput @onInputObjectType {
-            annotatedField: Type @onField
+          
+          input AnnotatedInput @onInputObject {
+            annotatedField: Type @onInputFieldDefinition
           }
-
-          directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
-
-          directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+          
+          input UndefinedInput
+          
+          extend input InputType {
+            other: Float = 1.23e4 @onInputFieldDefinition
+          }
+          
+          extend input InputType @onInputObject
+          
+          """
+          This is a description of the `@skip` directive
+          """
+          directive @skip(
+            """This is a description of the `if` argument"""
+            if: Boolean! @onArgumentDefinition
+          ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+          directive @include(if: Boolean!)
+            on FIELD
+            | FRAGMENT_SPREAD
+            | INLINE_FRAGMENT
+          directive @include2(if: Boolean!) on
+            | FIELD
+            | FRAGMENT_SPREAD
+            | INLINE_FRAGMENT
+          directive @myRepeatableDir(name: String!) repeatable on
+            | OBJECT
+            | INTERFACE
+          extend schema @onSchema
+          extend schema @onSchema {
+            subscription: SubscriptionType
+          }
         schema
 
         document = GraphQL::Language::Parser.parse(query_string)
