@@ -48,11 +48,11 @@ describe GraphQL::Language::Generation do
     end
 
     context "inputs" do
-      query_string = <<-query
+      query_string = <<-QUERY
         query {
           field(null_value: null, null_in_array: [1, null, 3], int: 3, float: 4.7e-24, bool: false, string: "☀︎🏆\\n escaped \\" unicode ¶ /", enum: ENUM_NAME, array: [7, 8, 9], object: {a: [1, 2, 3], b: {c: "4"}}, unicode_bom: "\xef\xbb\xbfquery")
         }
-      query
+      QUERY
       document = GraphQL::Language::Parser.parse(query_string)
 
       it "generate" do
@@ -62,13 +62,13 @@ describe GraphQL::Language::Generation do
 
     describe "schema" do
       describe "schema with convention names for root types" do
-        query_string = <<-schema
+        query_string = <<-SCHEMA
           schema {
             query: Query
             mutation: Mutation
             subscription: Subscription
           }
-        schema
+        SCHEMA
 
         document = GraphQL::Language::Parser.parse(query_string)
 
@@ -78,13 +78,13 @@ describe GraphQL::Language::Generation do
       end
 
       context "schema with custom query root name" do
-        query_string = <<-schema
+        query_string = <<-SCHEMA
           schema {
             query: MyQuery
             mutation: Mutation
             subscription: Subscription
           }
-        schema
+        SCHEMA
 
         document = GraphQL::Language::Parser.parse(query_string)
 
@@ -94,13 +94,13 @@ describe GraphQL::Language::Generation do
       end
 
       describe "schema with custom mutation root name" do
-        query_string = <<-schema
+        query_string = <<-SCHEMA
           schema {
             query: Query
             mutation: MyMutation
             subscription: Subscription
           }
-        schema
+        SCHEMA
 
         document = GraphQL::Language::Parser.parse(query_string)
 
@@ -110,13 +110,13 @@ describe GraphQL::Language::Generation do
       end
 
       context "schema with custom subscription root name" do
-        query_string = <<-schema
+        query_string = <<-SCHEMA
           schema {
             query: Query
             mutation: Mutation
             subscription: MySubscription
           }
-        schema
+        SCHEMA
 
         document = GraphQL::Language::Parser.parse(query_string)
 
@@ -127,7 +127,7 @@ describe GraphQL::Language::Generation do
 
       describe "full featured schema" do
         # From: https://github.com/graphql/graphql-js/blob/b883320afb0fae3318afe9da0b0c0da9eed4e6f7/src/language/__tests__/schema-kitchen-sink.graphql
-        query_string = <<-schema
+        query_string = <<-SCHEMA
           """This is a description of the schema as a whole."""
           schema {
             query: QueryType
@@ -279,7 +279,7 @@ describe GraphQL::Language::Generation do
           extend schema @onSchema {
             subscription: SubscriptionType
           }
-        schema
+        SCHEMA
 
         document = GraphQL::Language::Parser.parse(query_string)
 
@@ -292,19 +292,19 @@ describe GraphQL::Language::Generation do
         end
 
         it "generate argument default to null" do
-          query_string = <<-schema
+          query_string = <<-SCHEMA
             type Foo {
               one(argument: String = null): Type
               two(argument: Color = Red): Type
             }
-          schema
+          SCHEMA
 
-          expected = <<-schema
+          expected = <<-SCHEMA
             type Foo {
               one(argument: String): Type
               two(argument: Color = Red): Type
             }
-          schema
+          SCHEMA
 
           document = GraphQL::Language::Parser.parse(query_string)
 
